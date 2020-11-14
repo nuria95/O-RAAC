@@ -52,7 +52,7 @@ class DDPG(AbstractAgent):
         pass
 
     def save_final_model(self):
-        pass 
+        pass
 
     def act(self, state):  # only for evaluation
         with torch.no_grad():
