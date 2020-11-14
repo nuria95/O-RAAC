@@ -115,7 +115,6 @@ class AbstractAgent(ABC):
         """
         self.logs['episodes_eval_steps'][-1] += 1
         self.logs['episodes_eval_cumrewards'][-1] += observation.reward
-        self.logs['episode_cumvel'][-1] += round(info['x_velocity'], 2)
         if not observation.done:  # in case already reached terminal
             # state don't account
             try:
@@ -125,6 +124,7 @@ class AbstractAgent(ABC):
         if eval and 'angle' in info.keys():
             self.logs['episodes_angles'][-1].append(info['angle'])
         if eval and 'x_velocity' in info.keys():
+            self.logs['episode_cumvel'][-1] += round(info['x_velocity'], 2)
             self.logs['episodes_vels'][-1].append(info['x_velocity'])
 
     def end_episode_offline(self):

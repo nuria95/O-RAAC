@@ -7,7 +7,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .utilities import update_parameters, parse_layers
 
-__all__ = ['VAE', 'ORAAC_Actor', 'RAAC_Actor', 'DeterministicNN_IQN']
+__all__ = ['VAE', 'ORAAC_Actor', 'RAAC_Actor', 'DeterministicNN_IQN',
+           "Actor", "VAEActor", "Critic"
+           ]
 
 
 class VAE(nn.Module):
@@ -365,4 +367,85 @@ class DeterministicNN_IQN(nn.Module):
     @params.setter
     def params(self, new_params):
         """Set parameters softly."""
+        update_parameters(self.params, new_params, self.tau)
+
+
+class Actor(nn.Module):
+    def __init__(self, state_dim, action_dim, max_action, tau=0.1):
+        super(Actor, self).__init__()
+
+        self.l1 = nn.Linear(state_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, action_dim)
+
+        self.max_action = max_action
+        self.tau = tau
+
+    def forward(self, state):
+        a = F.relu(self.l1(state))
+        a = F.relu(self.l2(a))
+        return self.max_action * torch.tanh(self.l3(a))
+
+    @property
+    def params(self):  #  do not call it 'parameters' (already a default func)
+        """Get iterator of NN parameters."""
+        return self.parameters()
+
+    @params.setter
+    def params(self, new_params):
+        """Set q-function parameters."""
+        update_parameters(self.params, new_params, self.tau)
+
+
+class VAEActor(nn.Module):
+    def __init__(self, state_dim, action_dim, max_action, phi=0.05, tau=0.1):
+        super(VAEActor, self).__init__()
+        self.l1 = nn.Linear(state_dim + action_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, action_dim)
+
+        self.max_action = max_action
+        self.phi = phi
+        self.tau = tau
+
+    def forward(self, state, action):
+        a = F.relu(self.l1(torch.cat([state, action], 1)))
+        a = F.relu(self.l2(a))
+        a = self.phi * self.max_action * torch.tanh(self.l3(a))
+        return (a + action).clamp(-self.max_action, self.max_action)
+
+    @property
+    def params(self):  #  do not call it 'parameters' (already a default func)
+        """Get iterator of NN parameters."""
+        return self.parameters()
+
+    @params.setter
+    def params(self, new_params):
+        """Set q-function parameters."""
+        update_parameters(self.params, new_params, self.tau)
+
+
+class Critic(nn.Module):
+    def __init__(self, state_dim, action_dim, num_heads=2, tau=0.005, lambda_=0.75):
+        super(Critic, self).__init__()
+        self.l1 = nn.Linear(state_dim + action_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, num_heads)
+        self.tau = tau
+        self.lambda_ = lambda_
+        self.num_heads = num_heads
+
+    def forward(self, state, action):
+        q = F.relu(self.l1(torch.cat([state, action], 1)))
+        q = F.relu(self.l2(q))
+        return self.l3(q)
+
+    @property
+    def params(self):  #  do not call it 'parameters' (already a default func)
+        """Get iterator of NN parameters."""
+        return self.parameters()
+
+    @params.setter
+    def params(self, new_params):
+        """Set q-function parameters."""
         update_parameters(self.params, new_params, self.tau)
