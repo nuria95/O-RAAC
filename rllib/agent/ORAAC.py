@@ -4,7 +4,8 @@ import torch
 import torch.nn.functional as F
 from gym.wrappers import ClipAction
 from rllib.dataset import Observation
-from rllib.util import quantile_huber_loss
+from rllib.util.losses import quantile_huber_loss
+from rllib.util.utilities import Wang_distortion
 from torch.distributions import uniform
 from torch.distributions.normal import Normal
 
@@ -33,7 +34,14 @@ class ORAAC(AbstractAgent):
         self.tb = tb
         self.eval = eval
         self.lamda = hyper_params['lamda']
-        self.alpha_cvar = hyper_params['cvar']
+        if hyper_params.get('cvar', False):
+            self.alpha_cvar = hyper_params['cvar']
+            self.distr_taus_tail = uniform.Uniform(0., self.alpha_cvar)
+        elif hyper_params.get('wang', False):
+            self.distr_taus_tail = Wang_distortion()
+
+        else:
+            raise ValueError("No distortion found")
         self.logger = logger
         self.render = render
         if self.policy.__class__.__name__ == 'RAAC_Actor':
@@ -50,7 +58,7 @@ class ORAAC(AbstractAgent):
             self.batch_size = hyper_params['batch_size']
             self.K = hyper_params['n_quantiles_policy']
             self.N = hyper_params['n_quantiles_critic']
-            self.distr_taus_tail = uniform.Uniform(0.01, self.alpha_cvar)
+
             self.distr_taus_uniform = uniform.Uniform(0., 1.)
             self.ActionClipper = ClipAction(self.env)
 

@@ -19,7 +19,6 @@ from utils.utilities import (dotdict, find_file, get_names, get_names_eval,
                              parse_args, update_old_json_varnames)
 
 # warnings.filterwarnings("ignore")
-base_dir = os.path.dirname(os.path.realpath(__file__))
 
 record_tensorboard = True  # if 'cluster' in os.getcwd() else False
 save_model = True  # if 'cluster' in os.getcwd() else False
@@ -81,7 +80,7 @@ if args.eval:
         dict_env[item[0]] = item[1]
     p = dotdict({})
     p.env = dotdict(dict_env)
-    
+
     dict_agent = {}
     for item in model_net['agent_properties']:
         dict_agent[item[0]] = item[1]
@@ -192,13 +191,14 @@ if args.eval:
 
     agent = ORAAC(env, policy, critic, target_policy, target_critic,
                   hyper_params={"lamda": p.agent.lamda,
-                                "cvar": p.agent.cvar},
+                                "cvar": p.agent.cvar,
+                                "wang": p.agent.wang},
                   dataset=None,
                   eval=True, logger=logger, vae=vae)
 
     print('\nEvaluating model....')
     max_episode_steps = 200 if 'Cheetah' in env.name else 500
-   
+
     agent.evaluate_model(max_episode_steps=max_episode_steps,
                          render=render_eval,
                          times_eval=args.numexp)

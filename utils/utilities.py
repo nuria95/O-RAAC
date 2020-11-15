@@ -25,6 +25,7 @@ def parse_args():
     parser.add_argument('--TARGET_UPDATE_TAU', action="store", type=float)
 
     parser.add_argument('--cvar', action="store", type=float)
+    parser.add_argument('--wang', action="store", type=float)
     parser.add_argument('--prob_vel_penal', action="store", type=float)
     parser.add_argument('--max_vel', action="store", type=int)
     parser.add_argument('--cost_vel', action="store", type=int)
@@ -86,13 +87,22 @@ def get_names(p, args, date, record_tensorboard, save_model):
         inf_penal = f'_anglepenal{np.abs(p.env.cost_pose)}_' \
                     f'prob{p.env.prob_pose_penal}' \
                     if p.env.prob_pose_penal is not None else ''
-    inf_cvar = f'_cvar{p.agent.cvar}'
+
+    if p.agent.cvar is not None:
+        inf_distortion = f'cvar{p.agent.cvar}'
+
+    elif p.agent.wang is not None:
+        inf_distortion = 'wang'
+    else:
+        raise ValueError('No distortion available')
+
     inf_seed = f'_seed{p.agent.SEED}'
     inf_lamda = f'_lamda{p.agent.lamda}'
     inf_tau_update = f'_tau{p.agent.TARGET_UPDATE_TAU}'
 
-    name_file = '{}{}{}{}{}{}'.format(
-        date, inf_penal, inf_cvar, inf_seed, inf_lamda, inf_tau_update)
+    name_file = '{}{}_{}{}{}{}'.format(
+        date, inf_penal, inf_distortion, inf_seed, inf_lamda,
+        inf_tau_update)
 
     if record_tensorboard:
         name_tb = f'data_ICLR/{p.agent.name}/{p.env.name}/'\
@@ -103,7 +113,7 @@ def get_names(p, args, date, record_tensorboard, save_model):
     if save_model:
         save_directory = f'data_ICLR/{p.agent.name}/'\
             f'{p.env.name}/train/models/lamda{p.agent.lamda}/'\
-            f'cvar{p.agent.cvar}'
+            f'{inf_distortion}'
         if not os.path.exists(save_directory):
             os.makedirs(save_directory)
         name_save = os.path.join(save_directory, name_file)
@@ -111,16 +121,16 @@ def get_names(p, args, date, record_tensorboard, save_model):
         name_save = None
 
     name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                          f'{p.env.name}/train/statistics/lamda{p.agent.lamda}/cvar{p.agent.cvar}')
+                          f'{p.env.name}/train/statistics/lamda{p.agent.lamda}/{inf_distortion}')
 
     return name_file, name_tb, name_save, name_logger_folder
 
 
 def get_names_eval(p):
 
-    name_logger_folder = (f'data_ICLR/{p.agent.name}/eval/'
-                          f'{p.env.name}/statistics/lamda{p.agent.lamda}/'
-                          f'cvar{p.agent.cvar}')
+    name_logger_folder = (f'data_ICLR/{p.agent.name}/'
+                          f'{p.env.name}/eval/statistics/lamda{p.agent.lamda}/'
+                          f'{inf_distortion}')
 
     return name_logger_folder
 

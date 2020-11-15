@@ -1,6 +1,9 @@
 """Utilities for the rllib library."""
 import torch
-__all__ = ['get_dict_hyperparams', 'compute_cvar']
+from torch.distributions import uniform
+from torch.distributions.normal import Normal
+
+__all__ = ['get_dict_hyperparams', 'compute_cvar', 'Wang_distortion']
 
 
 def get_dict_hyperparams(p):
@@ -14,6 +17,7 @@ def get_dict_hyperparams(p):
         'n_quantiles_policy': p.agent.N_QUANTILES_POLICY,
         'n_quantiles_critic': p.agent.N_QUANTILES_CRITIC,
         "cvar": p.agent.cvar,
+        "wang": p.agent.wang,
         'max_eval_steps': p.agent.MAX_EVAL_STEPS,
         "lr_critic": p.agent.LEARNING_RATE_CRITIC,
         "lr_actor": p.agent.LEARNING_RATE_ACTOR,
@@ -50,3 +54,30 @@ def compute_cvar(data, alpha):
 
     else:
         return cvar.numpy()
+
+
+class Wang_distortion():
+    """Sample quantile levels for the Wang risk measure.
+    Wang 2000
+
+    Parameters
+    ----------
+    eta: float. Default: -0.75
+        for eta < 0 prduces risk-averse.
+    """
+
+    def __init__(self, eta=-0.75):
+        self.eta = eta
+        self.normal = Normal(loc=torch.Tensor([0]), scale=torch.Tensor([1]))
+
+    def sample(self, num_samples):
+        """
+        Parameters
+        ----------
+        num_samples: tuple. (num_samples,)
+
+        """
+        taus_uniform = uniform.Uniform(0., 1.).sample(num_samples)
+        wang_tau = self.normal.cdf(
+            value=self.normal.icdf(value=taus_uniform) + self.eta)
+        return wang_tau
