@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from gym.wrappers import ClipAction
 from rllib.dataset import Observation
 from rllib.util.losses import quantile_huber_loss
-from rllib.util.utilities import Wang_distortion
+from rllib.util.utilities import Wang_distortion, CPW, Power
 from torch.distributions import uniform
 from torch.distributions.normal import Normal
 
@@ -39,6 +39,10 @@ class ORAAC(AbstractAgent):
             self.distr_taus_tail = uniform.Uniform(0., self.alpha_cvar)
         elif hyper_params.get('wang', False):
             self.distr_taus_tail = Wang_distortion()
+        elif hyper_params.get('cpw', False):
+            self.distr_taus_tail = CPW()
+        elif hyper_params.get('power', False):
+            self.distr_taus_tail = Power()
 
         else:
             raise ValueError("No distortion found")

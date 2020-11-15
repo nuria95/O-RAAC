@@ -1,4 +1,5 @@
 """Utilities for the rllib library."""
+import numpy as np
 import torch
 from torch.distributions import uniform
 from torch.distributions.normal import Normal
@@ -81,3 +82,56 @@ class Wang_distortion():
         wang_tau = self.normal.cdf(
             value=self.normal.icdf(value=taus_uniform) + self.eta)
         return wang_tau
+
+
+class CPW(object):
+    """Sample quantile levels for the CPW risk measure.
+
+    Parameters
+    ----------
+    eta: float.
+    """
+
+    def __init__(self, eta=0.71):
+        self.eta = eta
+
+    def sample(self, num_samples):
+        """
+        Parameters
+        ----------
+        num_samples: tuple. (num_samples,)
+
+        """
+        taus_uniform = uniform.Uniform(0., 1.).sample(num_samples)
+        tau_eta = taus_uniform ** self.eta
+        one_tau_eta = (1 - taus_uniform) ** self.eta
+        cpw_tau = tau_eta / ((tau_eta + one_tau_eta) ** (1. / self.eta))
+
+        return cpw_tau
+
+
+class Power(object):
+    """Sample quantile levels for the Power risk measure.
+
+    Parameters
+    ----------
+    eta: float. if eta < 0 is risk averse, if eta > 0 is risk seeking.
+    """
+
+    def __init__(self, eta=-2):
+        self.eta = eta
+        self.exponent = 1 / (1 + np.abs(eta))
+
+    def sample(self, num_samples):
+        """
+        Parameters
+        ----------
+        num_samples: tuple. (num_samples,)
+
+        """
+        taus_uniform = uniform.Uniform(0., 1.).sample(num_samples)
+
+        if self.eta > 0:
+            return taus_uniform ** self.exponent
+        else:
+            return 1 - (1 - taus_uniform) ** self.exponent
