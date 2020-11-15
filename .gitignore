@@ -157,6 +157,9 @@ statistics/
 #recordings 
 recording/
 
+#tables
+tables/
+
 json_params/AC/
 json_params/IQN/
 json_params/DDPG/
