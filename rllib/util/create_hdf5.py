@@ -51,17 +51,17 @@ class HDF5_Creator():
 
     def __init__(self, d4rl_env_name, properties_env=None, fname=None):
         self.env_d4rl = gym.make(d4rl_env_name)
-        dataset = self.env_d4rl.get_dataset()
+        self.dataset = self.env_d4rl.get_dataset()
         self.writer = DatasetWriter(mujoco=True)
 
         env = gym.make(get_gym_name(d4rl_env_name)).unwrapped
         env.seed(10)
         torch.manual_seed(10)
         np.random.seed(10)
-        self.actions = dataset['actions']
-        self.obs = dataset['observations']
-        self.rewards = dataset['rewards']
-        self.dones = dataset['terminals']
+        self.actions = self.dataset['actions']
+        self.obs = self.dataset['observations']
+        self.rewards = self.dataset['rewards']
+        self.dones = self.dataset['terminals']
         self.properties_env = properties_env
 
         if properties_env.get('cost_vel', False):
@@ -134,3 +134,15 @@ class HDF5_Creator():
                 f'{self.h5py_name} is not correct. Not same observations!'
 
         print(f'Dataset correct. Dataset saved in {self.h5py_name}')
+
+
+if __name__ == "__main__":
+    name_env = ''  # 'halfcheetah-expert-v0'
+    dict_env = {}  # {'prob_vel_penal': 0.05,
+    # 'cost_vel': -60,
+    # 'max_vel': 10}
+    fname = ''
+    # f'{path_to_datasets}/halfcheetah_expert_prob0.05_penal-60_maxvel10.hdf5'
+
+    creator = HDF5_Creator(name_env, dict_env, fname)
+    creator.create_hdf5_file()
