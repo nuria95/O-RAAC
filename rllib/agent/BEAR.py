@@ -9,7 +9,8 @@ def rbf(x, y, sigma):
     if x.ndim == 3:
         b1, n, k1 = x.shape
         b2, m, k2 = y.shape
-        diff = torch.square(x.repeat(1, m, 1) - y.repeat_interleave(n, 1)).sum(-1)
+        diff = torch.square(x.repeat(1, m, 1) -
+                            y.repeat_interleave(n, 1)).sum(-1)
         return torch.exp(-diff / sigma).reshape(b1, n, m)
     else:
         diff = torch.square(x - y).sum(-1)
@@ -29,7 +30,8 @@ def laplace(x, y, sigma):
 
 
 class MMDLoss(nn.Module):
-    def __init__(self, kernel_function, kernel_param, epsilon, regularization=False):
+    def __init__(self, kernel_function, kernel_param, epsilon,
+                 regularization=False):
         super().__init__()
         self.sigma = kernel_param
         if kernel_function == "rbf":
@@ -68,9 +70,9 @@ class MMDLoss(nn.Module):
     def mmd(self, x, y):
         """Compute MMD loss"""
         return (
-                self.kernel_function(x, x, self.sigma).mean()
-                - 2 * self.kernel_function(x, y, self.sigma).mean()
-                + self.kernel_function(y, y, self.sigma).mean()
+            self.kernel_function(x, x, self.sigma).mean()
+            - 2 * self.kernel_function(x, y, self.sigma).mean()
+            + self.kernel_function(y, y, self.sigma).mean()
         )
 
 
@@ -85,8 +87,8 @@ class BEAR(DDPG):
         )
         self.mmd_samples = self.hyper_params.get("mmd_samples", 5)
         self.optimizer_dual = torch.optim.Adam(
-                params=[self.mmd_loss.dual_raw],
-                lr=self.hyper_params.get('lr_actor', 1e-3)
+            params=[self.mmd_loss.dual_raw],
+            lr=self.hyper_params.get('lr_actor', 1e-3)
         )
 
     def train_actor(self, obs):
@@ -105,10 +107,10 @@ class BEAR(DDPG):
         # Add regularization loss.
 
         actor_loss += self.mmd_loss(
-                behavior_actions=action.unsqueeze(1),
-                proposed_actions=policy_actions.unsqueeze(1).repeat_interleave(
-                        self.mmd_samples, 1
-                )
+            behavior_actions=action.unsqueeze(1),
+            proposed_actions=policy_actions.unsqueeze(1).repeat_interleave(
+                self.mmd_samples, 1
+            )
         )
 
         # Optimize the actor and dual variables
@@ -117,4 +119,3 @@ class BEAR(DDPG):
         actor_loss.backward()
         self.optimizer_actor.step()
         self.optimizer_dual.step()
-

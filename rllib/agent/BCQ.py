@@ -14,22 +14,22 @@ class BCQ(DDPG):
         latent_dim = dim_action * 2
 
         self.policy = VAEActor(
-                state_dim=dim_state,
-                action_dim=dim_action,
-                max_action=max_action,
-                phi=self.hyper_params.get("phi", 0.05)
+            state_dim=dim_state,
+            action_dim=dim_action,
+            max_action=max_action,
+            phi=self.hyper_params.get("phi", 0.05)
         )
         self.target_policy = copy.deepcopy(self.policy)
         self.optimizer_actor = torch.optim.Adam(
-                params=self.policy.parameters(),
-                lr=self.hyper_params.get('lr_actor', 1e-3)
+            params=self.policy.parameters(),
+            lr=self.hyper_params.get('lr_actor', 1e-3)
         )
 
         self.vae = VAE(
-                dim_state=dim_state,
-                dim_action=dim_action,
-                latent_dim=latent_dim,
-                max_action=max_action
+            dim_state=dim_state,
+            dim_action=dim_action,
+            latent_dim=latent_dim,
+            max_action=max_action
         )
         self.vae_optimizer = torch.optim.Adam(self.vae.parameters())
 
@@ -59,7 +59,8 @@ class BCQ(DDPG):
         # Variational Auto-Encoder Training
         recon, mean, std = self.vae(state, action)
         recon_loss = torch.nn.functional.mse_loss(recon, action)
-        kl_loss = -0.5 * (1 + torch.log(std.pow(2)) - mean.pow(2) - std.pow(2)).mean()
+        kl_loss = -0.5 * (1 + torch.log(std.pow(2)) -
+                          mean.pow(2) - std.pow(2)).mean()
         vae_loss = recon_loss + 0.5 * kl_loss
 
         self.vae_optimizer.zero_grad()
@@ -76,8 +77,8 @@ class BCQ(DDPG):
 
             # Compute value of perturbed actions sampled from the VAE
             target_q = self.target_critic(
-                    next_state,
-                    self.target_policy(next_state, self.vae.decode(next_state))
+                next_state,
+                self.target_policy(next_state, self.vae.decode(next_state))
             )
             target_q = self._get_target(reward, done, target_q)
 

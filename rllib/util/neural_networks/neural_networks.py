@@ -426,7 +426,8 @@ class VAEActor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, state_dim, action_dim, num_heads=2, tau=0.005, lambda_=0.75):
+    def __init__(self, state_dim, action_dim, num_heads=2, tau=0.005,
+                 lambda_=0.75):
         super(Critic, self).__init__()
         self.l1 = nn.Linear(state_dim + action_dim, 400)
         self.l2 = nn.Linear(400, 300)

@@ -20,17 +20,17 @@ class DDPG(AbstractAgent):
         max_action = env.action_space.high[0]
 
         policy = Actor(
-                state_dim=dim_state, action_dim=dim_action, max_action=max_action
+            state_dim=dim_state, action_dim=dim_action, max_action=max_action
         )
         self.policy = policy
         self.target_policy = copy.deepcopy(policy)
 
         critic = Critic(
-                state_dim=dim_state,
-                action_dim=dim_action,
-                num_heads=hyper_params.get('num_heads', 2),
-                tau=hyper_params.get('tau', 0.005),
-                lambda_=hyper_params.get('lambda_', 0.75)
+            state_dim=dim_state,
+            action_dim=dim_action,
+            num_heads=hyper_params.get('num_heads', 2),
+            tau=hyper_params.get('tau', 0.005),
+            lambda_=hyper_params.get('lambda_', 0.75)
         )
         self.critic = critic
         self.target_critic = copy.deepcopy(critic)
@@ -40,12 +40,12 @@ class DDPG(AbstractAgent):
         self.batch_size = hyper_params.get('batch_size', 100)
 
         self.optimizer_actor = torch.optim.Adam(
-                params=self.policy.parameters(),
-                lr=hyper_params.get('lr_actor', 1e-3)
+            params=self.policy.parameters(),
+            lr=hyper_params.get('lr_actor', 1e-3)
         )
         self.optimizer_critic = torch.optim.Adam(
-                params=self.critic.parameters(),
-                lr=hyper_params.get('lr_critic', 1e-3)
+            params=self.critic.parameters(),
+            lr=hyper_params.get('lr_critic', 1e-3)
         )
 
     def save_model(self):
@@ -101,12 +101,13 @@ class DDPG(AbstractAgent):
             q_min, q_max = target_q.min(-1)[0], target_q.max(-1)[0]
             lambda_ = self.critic.lambda_
             target_q = lambda_ * q_min + (1 - lambda_) * q_max
-            target_q = target_q.reshape(self.batch_size, -1).max(1)[0].reshape(-1)
+            target_q = target_q.reshape(
+                self.batch_size, -1).max(1)[0].reshape(-1)
 
             target_q = (reward + (1 - done) * self.gamma * target_q).detach()
 
             target_q = target_q.unsqueeze(-1).repeat_interleave(
-                    self.critic.num_heads, -1
+                self.critic.num_heads, -1
             )
         else:
             target_q = (reward + (1 - done) * self.gamma * target_q).detach()
@@ -116,7 +117,8 @@ class DDPG(AbstractAgent):
         """Train critic."""
         state, action, reward, done, next_state = obs
         # Compute the target Q value
-        target_q = self.target_critic(next_state, self.target_policy(next_state))
+        target_q = self.target_critic(
+            next_state, self.target_policy(next_state))
         target_q = self._get_target(reward, done, target_q)
 
         # Get current Q estimate
