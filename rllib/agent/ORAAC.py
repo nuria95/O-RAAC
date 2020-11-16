@@ -33,19 +33,6 @@ class ORAAC(AbstractAgent):
         self.env = env
         self.tb = tb
         self.eval = eval
-        self.lamda = hyper_params['lamda']
-        if hyper_params.get('cvar', False):
-            self.alpha_cvar = hyper_params['cvar']
-            self.distr_taus_tail = uniform.Uniform(0., self.alpha_cvar)
-        elif hyper_params.get('wang', False):
-            self.distr_taus_tail = Wang_distortion()
-        elif hyper_params.get('cpw', False):
-            self.distr_taus_tail = CPW()
-        elif hyper_params.get('power', False):
-            self.distr_taus_tail = Power()
-
-        else:
-            raise ValueError("No distortion found")
         self.logger = logger
         self.render = render
         if self.policy.__class__.__name__ == 'RAAC_Actor':
@@ -62,6 +49,18 @@ class ORAAC(AbstractAgent):
             self.batch_size = hyper_params['batch_size']
             self.K = hyper_params['n_quantiles_policy']
             self.N = hyper_params['n_quantiles_critic']
+
+            if hyper_params['risk_distortion'] == 'cvar':
+                self.alpha_cvar = hyper_params['alpha_cvar']
+                self.distr_taus_risk = uniform.Uniform(0., self.alpha_cvar)
+            elif hyper_params['risk_distortion'] == 'wang':
+                self.distr_taus_risk = Wang_distortion()
+            elif hyper_params['risk_distortion'] == 'cpw':
+                self.distr_taus_risk = CPW()
+            elif hyper_params['risk_distortion'] == 'power':
+                self.distr_taus_risk = Power()
+            else:
+                raise ValueError("No distortion found")
 
             self.distr_taus_uniform = uniform.Uniform(0., 1.)
             self.ActionClipper = ClipAction(self.env)
@@ -208,7 +207,7 @@ class ORAAC(AbstractAgent):
             action = self.policy(state, vae_action)
         else:
             action = self.policy(state)
-        tau_actor_k = self.distr_taus_tail.sample((self.K,))
+        tau_actor_k = self.distr_taus_risk.sample((self.K,))
         tail_samples = self.critic.get_sampled_Z(
             state, tau_actor_k, action)  # [batch_size x K]
 

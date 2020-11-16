@@ -88,13 +88,12 @@ def get_names(p, args, date, record_tensorboard, save_model):
                     f'prob{p.env.prob_pose_penal}' \
                     if p.env.prob_pose_penal is not None else ''
 
-    if p.agent.cvar is not None:
-        inf_distortion = f'cvar{p.agent.cvar}'
-
-    elif p.agent.wang is not None:
-        inf_distortion = 'wang'
-    else:
-        raise ValueError('No distortion available')
+    assert p.agent.RISK_DISTORTION is not None, 'Risk distortion not provided'
+    inf_distortion = f'{p.agent.RISK_DISTORTION}'
+    if p.agent.RISK_DISTORTION == 'cvar':
+        assert p.agent.alpha_cvar is not None,\
+            'alpha_cvar parameter is not provided'
+        inf_distortion = inf_distortion+'{p.agent.alpha_cvar}'
 
     inf_seed = f'_seed{p.agent.SEED}'
     inf_lamda = f'_lamda{p.agent.lamda}'
@@ -121,12 +120,19 @@ def get_names(p, args, date, record_tensorboard, save_model):
         name_save = None
 
     name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                          f'{p.env.name}/train/statistics/lamda{p.agent.lamda}/{inf_distortion}')
+                          f'{p.env.name}/train/statistics/lamda{p.agent.lamda}'
+                          f'/{inf_distortion}')
 
     return name_file, name_tb, name_save, name_logger_folder
 
 
 def get_names_eval(p):
+    assert p.agent.RISK_DISTORTION is not None, 'Risk distortion not provided'
+    inf_distortion = f'{p.agent.RISK_DISTORTION}'
+    if p.agent.RISK_DISTORTION == 'cvar':
+        assert p.agent.alpha_cvar is not None,\
+            'alpha_cvar parameter is not provided'
+        inf_distortion = inf_distortion+f'{p.agent.alpha_cvar}'
 
     name_logger_folder = (f'data_ICLR/{p.agent.name}/'
                           f'{p.env.name}/eval/statistics/lamda{p.agent.lamda}/'

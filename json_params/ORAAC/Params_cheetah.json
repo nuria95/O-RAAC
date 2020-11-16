@@ -6,10 +6,10 @@
         "MAX_EVAL_STEPS": 200,
         "max_episodes": 2000,
         "SEED": 600,
-        "TARGET_UPDATE_TAU": 0.1,
+        "TARGET_UPDATE_TAU": 0.005,
         "TARGET_UPDATE_FREQUENCY": 2,
-        "eval_freq": 20,
-        "GAMMA": 0.99,
+        "eval_freq": 100,
+        "GAMMA": 0.9,
         "LEARNING_RATE_CRITIC": 0.001,
         "LEARNING_RATE_ACTOR": 0.0001,
         "HIDDEN_UNITS_F": [
@@ -24,16 +24,15 @@
         "EMBEDDING_DIM": 16,
         "N_QUANTILES_CRITIC": 32,
         "N_QUANTILES_POLICY": 8,
-        "criterion_actor": "mse_loss",
-        "criterion_critic": "quantile_huber_loss",
         "TAU_EMBEDDING_DIM": 16,
-        "cvar": 1,
-        "lamda": 0.75
+        "RISK_DISTORTION": "cvar",
+        "alpha_cvar": 0.1,
+        "lamda": 0.5
     },
     "env": {
         "name": "halfcheetah-expert-v0",
-        "prob_vel_penal": 0.1,
-        "max_vel": 12,
-        "cost_vel": -20
+        "prob_vel_penal": 0.05,
+        "max_vel": 10,
+        "cost_vel": -60
     }
 }
