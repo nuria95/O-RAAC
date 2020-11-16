@@ -1,12 +1,13 @@
 import os
 
+import d4rl  # Import required to register environments
 import gym
 import numpy as np
-import d4rl  # Import required to register environments
+import torch
 from rllib.dataset.utilities import DatasetWriter
 from rllib.environment.reward_wrappers import (RewardHighVelocity,
                                                RewardUnhealthyPose)
-import torch
+from torch.distributions import Bernoulli
 
 path_to_datasets = os.environ.get('D4RL_DATASET_DIR',
                                   os.path.expanduser('~/.d4rl/datasets'))
@@ -51,6 +52,7 @@ class HDF5_Creator():
 
     def __init__(self, d4rl_env_name, properties_env=None, fname=None):
         self.env_d4rl = gym.make(d4rl_env_name)
+        self.d4rl_env_name = d4rl_env_name
         self.dataset = self.env_d4rl.get_dataset()
         self.writer = DatasetWriter(mujoco=True)
 
@@ -63,23 +65,62 @@ class HDF5_Creator():
         self.rewards = self.dataset['rewards']
         self.dones = self.dataset['terminals']
         self.properties_env = properties_env
+        dataset_name = self.env_d4rl.dataset_filepath[:-5]
 
         if properties_env.get('cost_vel', False):
             self.env = RewardHighVelocity(env, **properties_env)
+            self.h5py_name = f'{dataset_name}_'\
+                f'prob{properties_env["prob_vel_penal"]}_'\
+                f'penal{properties_env["cost_vel"]}_'\
+                f'maxvel{properties_env["max_vel"]}.hdf5'
+
         elif properties_env.get('cost_pose', False):
             self.env = RewardUnhealthyPose(env, **properties_env)
+            self.h5py_name = f'{dataset_name}_'\
+                f'prob{properties_env["prob_pose_penal"]}_'\
+                f'penal{properties_env["cost_pose"]}_'\
+                'pose.hdf5'
+
         else:
             raise ValueError('No reward wrapper found')
 
         dataset_name = self.env_d4rl.dataset_filepath[:-5]
 
-        self.h5py_name = f'{dataset_name}_'\
-            f'prob{properties_env["prob_vel_penal"]}_'\
-            f'penal{properties_env["cost_vel"]}_'\
-            f'maxvel{properties_env["max_vel"]}.hdf5'
-
         assert fname == self.h5py_name, \
             f'Not same name for h5py file {fname} vs {self.h5py_name}'
+
+    def create_hdf5_file(self):
+        if 'cheetah' in self.d4rl_env_name:
+            # Need to rerun environment since vel is not provided in obs:
+            self.create_hdf5_file_cheetah()
+        else:
+            # Apply reward function on the reward
+            self.create_hdf5_file_hopper_walker()
+        self.check_data()
+
+    def create_hdf5_file_hopper_walker(self):
+
+        print('\n\n **** Creating new dataset...******\n\n')
+        min_angle, max_angle = self.env.robust_angle_range
+        penal_distr = Bernoulli(self.properties_env['prob_pose_penal'])
+
+        for i in range(len(self.actions)):
+            observation = self.obs[i]
+            # differs from env.sim.data.qpos[1:3] in RewardWrapper
+            # since in observation xposition (qpos[0]) has already
+            # been excluded
+            _, angle = observation[0], observation[1]
+            robust_angle = min_angle < angle < max_angle
+            penal = (~robust_angle) *\
+                penal_distr.sample().item() * self.properties_env['cost_pose']
+            r = penal + self.rewards[i]
+            if not i % 10000:
+                print(f'Num datapoint {i}/{len(self.actions)}')
+
+            self.writer.append_data(observation, self.actions[i], r,
+                                    self.dones[i])
+
+        self.writer.write_dataset(fname=self.h5py_name)
 
     def get_state(self, i):
         pos_full = np.concatenate([[self.env.sim.data.qpos[0].copy()],
@@ -88,9 +129,9 @@ class HDF5_Creator():
         vel_full = self.obs[i][8::]  # [9 jointvels]
         return pos_full, vel_full
 
-    def create_hdf5_file(self):
+    def create_hdf5_file_cheetah(self):
         self.writer._reset_data()
-        init_pos = np.concatenate([[0], self.obs[0][0:8]])
+        init_pos = np.concatenate([[0], self.obs[0][0:8]])  # 5 for hopper
         init_vel = self.obs[0][8::]
 
         self.env.reset()
@@ -119,6 +160,8 @@ class HDF5_Creator():
                                     pos_full, vel], info=info)
 
         self.writer.write_dataset(fname=self.h5py_name)
+
+    def check_data(self):
         print(f'Checking dataset {self.h5py_name} is correct...')
         # Use get_dataset method from OfflineEnv Class in
         # D4RL to check dataset
