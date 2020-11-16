@@ -115,10 +115,15 @@ class AbstractAgent(ABC):
         """
         self.logs['episodes_eval_steps'][-1] += 1
         self.logs['episodes_eval_cumrewards'][-1] += observation.reward
+        self.logs['episode_cumvel'][-1] += round(info['x_velocity'], 2)
         if not observation.done:  # in case already reached terminal
             # state don't account
             try:
                 self.logs['risky_state'][-1] += info['risky_state']*1
+            except KeyError:
+                pass
+            try:
+                self.logs['episode_cumvel'][-1] += round(info['x_velocity'], 2)
             except KeyError:
                 pass
         if eval and 'angle' in info.keys():
