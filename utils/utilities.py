@@ -10,7 +10,7 @@ import numpy as np
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_name', action="store", type=str,
-                        default='Params_cheetah.json')
+                        default='Params_cheetah_expert.json')
     parser.add_argument('--num_threads', action="store", type=int, default=1)
     parser.add_argument('--device', action="store", type=str)
 
@@ -24,8 +24,8 @@ def parse_args():
     parser.add_argument('--lamda', action="store", type=float)
     parser.add_argument('--TARGET_UPDATE_TAU', action="store", type=float)
 
-    parser.add_argument('--cvar', action="store", type=float)
-    parser.add_argument('--wang', action="store", type=float)
+    parser.add_argument('--alpha_cvar', action="store", type=float)
+    parser.add_argument('--RISK_DISTORTION', action="store", type=str)
     parser.add_argument('--prob_vel_penal', action="store", type=float)
     parser.add_argument('--max_vel', action="store", type=int)
     parser.add_argument('--cost_vel', action="store", type=int)
