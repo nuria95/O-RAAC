@@ -131,8 +131,7 @@ class EarlyStopping:
             f'Evaluation episode {episode_num}\n'\
             f'{self.evol_type} changed ({self.cvar_max:.2f} -->'\
             f'{cvar:.2f}). '\
-            f'For this evaluation mean is {mean:.2f} '\
-            f'(best mean is {self.best_mean:.2f}).\n'
+            f'For this evaluation mean is {mean:.2f}.\n '
 
         if self.verbose:
             print(text_print)
