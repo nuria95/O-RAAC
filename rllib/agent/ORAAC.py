@@ -36,8 +36,10 @@ class ORAAC(AbstractAgent):
         self.logger = logger
         self.render = render
         if self.policy.__class__.__name__ == 'RAAC_Actor':
+            self.with_IL = False
             self.train_vae = False
         else:
+            self.with_IL = True
             self.train_vae = True
         if not self.eval:
             self.critic = critic
@@ -106,7 +108,7 @@ class ORAAC(AbstractAgent):
             vae_loss = recon_loss + 0.5 * KL_loss
 
             # Early Stopper VAE
-            if self.num_train_steps > 20000 and not self.num_train_steps % 100:
+            if self.num_train_steps > 10000 and not self.num_train_steps % 100:
                 self.vae_loss_vector.append(vae_loss.data.numpy())
                 if len(self.vae_loss_vector) > 50:
                     if np.abs(
@@ -177,7 +179,7 @@ class ORAAC(AbstractAgent):
 
     def compute_next_action(self, next_state):
         with torch.no_grad():
-            if self.train_vae:  # ORAAC
+            if self.with_IL:  # ORAAC
                 # Sample action from state-conditioned marginal likelihood
                 # learnt by VAE
                 vae_action = self.vae.decode(next_state)
@@ -200,7 +202,7 @@ class ORAAC(AbstractAgent):
         """ Compute CVaR of the reward distribution given state and action
         selected by risk-averse policy
         """
-        if self.train_vae:
+        if self.with_IL:
             # Sample action from state-conditioned marginal likelihood
             # learnt by VAE
             vae_action = self.vae.decode(state).detach()
@@ -217,7 +219,7 @@ class ORAAC(AbstractAgent):
     def act(self, state):  # only for evaluation
         with torch.no_grad():
             state = torch.FloatTensor(state.reshape(1, -1))
-            if self.train_vae:  # ORAAC
+            if self.with_IL:  # ORAAC
                 vae_action = self.vae.decode(state)
                 action = self.policy(
                     state, vae_action)
