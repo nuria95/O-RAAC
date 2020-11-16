@@ -175,7 +175,7 @@ class DatasetWriter(object):
         self.data['terminals'].append(done)
         if self.goal:
             self.data['infos/goal'].append(goal)
-        if self.mujoco:
+        if self.mujoco and mujoco_env_data is not None:
             self.data['infos/qpos'].append(mujoco_env_data[0])  # qpos
             self.data['infos/qvel'].append(mujoco_env_data[1])  # qvel
             self.data['infos/x_vel'].append(info['x_velocity'])
