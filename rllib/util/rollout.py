@@ -5,7 +5,7 @@ def oraac_rollout(env, agent, gradient_steps, max_episodes,
                   max_episode_steps=1000,
                   eval_freq=100,
                   times_eval=5):
-    for grad_step in range(gradient_steps):
+    for grad_step in range(int(gradient_steps)):
         agent.train()
 
         if grad_step % eval_freq == 0:
@@ -14,8 +14,7 @@ def oraac_rollout(env, agent, gradient_steps, max_episodes,
             agent.save_model()
 
         if agent.eval_episode >= max_episodes:
-            agent.save_final_model()
             break
-
+    agent.save_final_model()
     agent.end_interaction()
     env.close()
