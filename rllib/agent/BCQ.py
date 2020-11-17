@@ -22,7 +22,7 @@ class BCQ(DDPG):
         self.target_policy = copy.deepcopy(self.policy)
         self.optimizer_actor = torch.optim.Adam(
             params=self.policy.parameters(),
-            lr=self.hyper_params.get('lr_actor', 1e-3)
+            # lr=self.hyper_params.get('lr_actor', 1e-3)
         )
 
         self.vae = VAE(
@@ -112,3 +112,11 @@ class BCQ(DDPG):
         self.optimizer_actor.zero_grad()
         actor_loss.backward()
         self.optimizer_actor.step()
+
+    @property
+    def model_dict(self):
+        return {
+            'critic': self.critic.state_dict(),
+            'actor': self.policy.state_dict(),
+            'vae': self.vae.state_dict()
+            }

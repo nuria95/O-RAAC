@@ -9,10 +9,10 @@ import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config_name', action="store", type=str,
-                        default='Params_cheetah_expert.json')
+    parser.add_argument('--config_name', action="store", type=str)
     parser.add_argument('--num_threads', action="store", type=int, default=1)
     parser.add_argument('--device', action="store", type=str)
+    parser.add_argument('--agent_name', action="store", type=str)
 
     parser.add_argument('--SEED', action="store", type=int)
     parser.add_argument('--N_QUANTILES_POLICY', action="store", type=int)
@@ -88,15 +88,17 @@ def get_names(p, args, date, record_tensorboard, save_model):
                     f'prob{p.env.prob_pose_penal}' \
                     if p.env.prob_pose_penal is not None else ''
 
-    assert p.agent.RISK_DISTORTION is not None, 'Risk distortion not provided'
-    inf_distortion = f'{p.agent.RISK_DISTORTION}'
-    if p.agent.RISK_DISTORTION == 'cvar':
-        assert p.agent.alpha_cvar is not None,\
-            'alpha_cvar parameter is not provided'
-        inf_distortion = inf_distortion+'{p.agent.alpha_cvar}'
-
+    if p.agent.name == 'O_RAAC':
+        assert p.agent.RISK_DISTORTION is not None, 'Risk distortion not provided'
+        inf_distortion = f'{p.agent.RISK_DISTORTION}'
+        if p.agent.RISK_DISTORTION == 'cvar':
+            assert p.agent.alpha_cvar is not None,\
+                'alpha_cvar parameter is not provided'
+            inf_distortion = inf_distortion+'{p.agent.alpha_cvar}'
+    else:
+        inf_distortion = ''
     inf_seed = f'_seed{p.agent.SEED}'
-    inf_lamda = f'_lamda{p.agent.lamda}'
+    inf_lamda = f'_lamda{p.agent.lamda}' if p.agent.name == 'O_RAAC' else ''
     inf_tau_update = f'_tau{p.agent.TARGET_UPDATE_TAU}'
 
     name_file = '{}{}_{}{}{}{}'.format(
@@ -110,18 +112,28 @@ def get_names(p, args, date, record_tensorboard, save_model):
         name_tb = None
 
     if save_model:
-        save_directory = f'data_ICLR/{p.agent.name}/'\
-            f'{p.env.name}/train/models/lamda{p.agent.lamda}/'\
-            f'{inf_distortion}'
+        if p.agent.name == 'O_RAAC':
+            save_directory = f'data_ICLR/{p.agent.name}/'\
+                f'{p.env.name}/train/models/lamda{p.agent.lamda}/'\
+                f'{inf_distortion}'
+        else:
+            save_directory = f'data_ICLR/{p.agent.name}/'\
+                f'{p.env.name}/train/models/'\
+                f'{inf_distortion}'
+
         if not os.path.exists(save_directory):
             os.makedirs(save_directory)
         name_save = os.path.join(save_directory, name_file)
     else:
         name_save = None
-
-    name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                          f'{p.env.name}/train/statistics/lamda{p.agent.lamda}'
-                          f'/{inf_distortion}')
+    if p.agent.name == 'O_RAAC':
+        name_logger_folder = (f'data_ICLR/{p.agent.name}/'
+                              f'{p.env.name}/train/statistics/'
+                              f'lamda{p.agent.lamda}/{inf_distortion}')
+    else:
+        name_logger_folder = (f'data_ICLR/{p.agent.name}/'
+                              f'{p.env.name}/train/statistics/'
+                              f'/{inf_distortion}')
 
     return name_file, name_tb, name_save, name_logger_folder
 
@@ -134,9 +146,14 @@ def get_names_eval(p):
             'alpha_cvar parameter is not provided'
         inf_distortion = inf_distortion+f'{p.agent.alpha_cvar}'
 
-    name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                          f'{p.env.name}/eval/statistics/lamda{p.agent.lamda}/'
-                          f'{inf_distortion}')
+    if p.agent.name == 'O_RAAC':
+        name_logger_folder = (f'data_ICLR/{p.agent.name}/'
+                              f'{p.env.name}/eval/statistics/'
+                              f'lamda{p.agent.lamda}/{inf_distortion}')
+    else:
+        name_logger_folder = (f'data_ICLR/{p.agent.name}/'
+                              f'{p.env.name}/eval/statistics/'
+                              f'{inf_distortion}')
 
     return name_logger_folder
 

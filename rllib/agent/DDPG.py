@@ -8,12 +8,19 @@ import copy
 
 
 class DDPG(AbstractAgent):
-    def __init__(self, env, dataset, hyper_params, eval=False):
+    def __init__(self, env, dataset, early_stopper_rew,
+                 early_stopper_var, logger, name_save, hyper_params,
+                 eval=False, bool_save_model=True):
         super().__init__()
         self.env = env
         self.dataset = dataset
         self.hyper_params = hyper_params
         self.eval = eval
+        self.name_save = name_save
+        self.early_stopper_var = early_stopper_var
+        self.early_stopper_rew = early_stopper_rew
+        self.bool_save_model = True
+        self.logger = logger
 
         dim_action = env.action_space.shape[0]
         dim_state = env.observation_space.shape[0]
@@ -29,7 +36,7 @@ class DDPG(AbstractAgent):
             state_dim=dim_state,
             action_dim=dim_action,
             num_heads=hyper_params.get('num_heads', 2),
-            tau=hyper_params.get('tau', 0.005),
+            tau=hyper_params.get('target_update_tau', 0.005),
             lambda_=hyper_params.get('lambda_', 0.75)
         )
         self.critic = critic
@@ -41,18 +48,41 @@ class DDPG(AbstractAgent):
 
         self.optimizer_actor = torch.optim.Adam(
             params=self.policy.parameters(),
-            lr=hyper_params.get('lr_actor', 1e-3)
+            # lr=hyper_params.get('lr_actor', 1e-3)
         )
         self.optimizer_critic = torch.optim.Adam(
             params=self.critic.parameters(),
-            lr=hyper_params.get('lr_critic', 1e-3)
+            # lr=hyper_params.get('lr_critic', 1e-3)
         )
 
     def save_model(self):
-        pass
+        if not self.bool_save_model:
+            pass
+        elif self.eval_episode > 30:
+            self.early_stopper_rew.call_mean(
+                score=self.mean_,
+                episode_num=self.eval_episode,
+                model_dict=self.model_dict)
+            self.early_stopper_var.call_cvar_mean(
+                mean=self.mean_,
+                cvar=self.cvar_,
+                episode_num=self.eval_episode,
+                model_dict=self.model_dict)
 
     def save_final_model(self):
-        pass
+        if not self.bool_save_model:
+            pass
+        else:
+            model_dict = {
+                'critic': self.critic.state_dict(),
+                'actor': self.policy.state_dict(),
+                'vae': self.vae.state_dict()}
+            self.logger.export_to_json()
+            directory_dict = f'{self.name_save}_mean{self.mean_:.2f}_'\
+                f'cvar{self.cvar_:.2f}epoch'\
+                f'{self.eval_episode}.tar'
+            torch.save(model_dict, directory_dict)
+            print('Saving final model. End training')
 
     def act(self, state):  # only for evaluation
         with torch.no_grad():
@@ -61,6 +91,7 @@ class DDPG(AbstractAgent):
         return action.data.numpy()
 
     def evaluate_model(self, max_episode_steps, times_eval=1, render=False):
+        self.times_eval = times_eval
         with torch.no_grad():
             for i in range(times_eval):
                 super().start_episode_offline(eval=self.eval)
@@ -145,3 +176,30 @@ class DDPG(AbstractAgent):
         self.optimizer_actor.zero_grad()
         actor_loss.backward()
         self.optimizer_actor.step()
+
+    def log_data(self):
+        self.logger.add(
+            **{"eval_mean_reward": self.mean_,
+                "eval_cvar_reward": self.cvar_,
+                "mean_ep_steps": self.mean_ep_steps(self.times_eval),
+                "mean_vel_episodes": self.mean_vel_episodes(self.times_eval),
+                "mean_risky_times": self.mean_risky_times(self.times_eval),
+                "fraction_risky_times":
+                    self.fraction_risky_times(self.times_eval)
+               })
+        if self.eval:
+            self.logger.add(**{"angles": self.logs['episodes_angles']})
+            self.logger.add(**{"velocities": self.logs['episodes_vels']})
+
+        if not self.num_train_steps % 1000 or self.eval:
+            self.logger.export_to_json()
+
+    @property
+    def mean_(self):
+        mean = self.mean_eval_cumreward(self.times_eval)
+        return mean
+
+    @property
+    def cvar_(self):
+        cvar = self.cvar_eval_cumreward(self.times_eval)
+        return cvar

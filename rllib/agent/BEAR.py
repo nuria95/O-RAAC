@@ -88,7 +88,7 @@ class BEAR(DDPG):
         self.mmd_samples = self.hyper_params.get("mmd_samples", 5)
         self.optimizer_dual = torch.optim.Adam(
             params=[self.mmd_loss.dual_raw],
-            lr=self.hyper_params.get('lr_actor', 1e-3)
+            # lr=self.hyper_params.get('lr_actor', 1e-3)
         )
 
     def train_actor(self, obs):
@@ -119,3 +119,10 @@ class BEAR(DDPG):
         actor_loss.backward()
         self.optimizer_actor.step()
         self.optimizer_dual.step()
+
+    @property
+    def model_dict(self):
+        return {
+            'critic': self.critic.state_dict(),
+            'actor': self.policy.state_dict()
+            }
