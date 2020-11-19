@@ -25,7 +25,7 @@ def get_gym_name(dataset_name):
         raise ValueError("{dataset_name} is not in D4RL")
 
 
-def get_env(p, SEED=None, eval=False, noise=False,
+def get_env(p, SEED=None, eval=False, reset_noise_scale=None,
             eval_terminate_when_unhealthy=True):
 
     terminate_when_unhealthy = False \
@@ -38,6 +38,8 @@ def get_env(p, SEED=None, eval=False, noise=False,
     # Use v3 version of environments for extra information to be available
     kwargs = {'terminate_when_unhealthy': terminate_when_unhealthy} if \
         'cheetah' not in dataset_name else {}
+    if reset_noise_scale:
+        kwargs['reset_noise_scale'] = reset_noise_scale
     env = gym.make(get_gym_name(dataset_name),
                    **kwargs
                    ).unwrapped
