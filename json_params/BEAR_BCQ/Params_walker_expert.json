@@ -1,0 +1,20 @@
+{
+    "agent": {
+        "name": "",
+        "GRADIENT_STEPS": 1e6,
+        "BATCH_SIZE": 128,
+        "MAX_EVAL_STEPS": 500,
+        "max_episodes": 4000,
+        "SEED": 40,
+        "TARGET_UPDATE_TAU": 0.005,
+        "TARGET_UPDATE_FREQUENCY": 2,
+        "eval_freq": 500,
+        "GAMMA": 0.99
+    },
+    "env": {
+        "name": "walker2d-expert-v0",
+        "prob_pose_penal": 0.1,
+        "cost_pose": -30,
+        "terminate_when_unhealthy": 1
+    }
+}

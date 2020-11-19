@@ -1,0 +1,38 @@
+{
+    "agent": {
+        "name": "O_RAAC",
+        "GRADIENT_STEPS": 10000000,
+        "BATCH_SIZE": 128,
+        "MAX_EVAL_STEPS": 500,
+        "max_episodes": 10000,
+        "SEED": 102,
+        "TARGET_UPDATE_TAU": 0.005,
+        "TARGET_UPDATE_FREQUENCY": 2,
+        "eval_freq": 500,
+        "GAMMA": 0.99,
+        "LEARNING_RATE_CRITIC": 0.001,
+        "LEARNING_RATE_ACTOR": 0.0001,
+        "HIDDEN_UNITS_F": [
+            32
+        ],
+        "HIDDEN_UNITS_STATE": [
+            256
+        ],
+        "HIDDEN_UNITS_ACTION": [
+            256
+        ],
+        "EMBEDDING_DIM": 16,
+        "N_QUANTILES_CRITIC": 32,
+        "N_QUANTILES_POLICY": 8,
+        "TAU_EMBEDDING_DIM": 16,
+        "RISK_DISTORTION": "cvar",
+        "alpha_cvar": 0.1,
+        "lamda": 0.75
+    },
+    "env": {
+        "name": "walker2d-medium-v0",
+        "prob_pose_penal": 0.1,
+        "cost_pose": -30,
+        "terminate_when_unhealthy": 1
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "agent": {
+        "name": "",
+        "GRADIENT_STEPS": 1e6,
+        "BATCH_SIZE": 128,
+        "MAX_EVAL_STEPS": 200,
+        "max_episodes": 2000,
+        "SEED": 60,
+        "TARGET_UPDATE_TAU": 0.005,
+        "TARGET_UPDATE_FREQUENCY": 2,
+        "eval_freq": 100,
+        "GAMMA": 0.99
+
+    },
+    "env": {
+        "name": "halfcheetah-medium-v0",
+        "prob_vel_penal": 0.05,
+        "max_vel": 4,
+        "cost_vel": -70
+    }
+}
