@@ -56,16 +56,14 @@ class MMDLoss(nn.Module):
     @property
     def dual(self):
         """Get dual variable"""
-        return torch.nn.functional.softplus(self.dual_raw) + 1e-4
+        return torch.nn.functional.softplus(self.dual_raw) + 1e-6
 
     def forward(self, behavior_actions, proposed_actions):
         mmd = self.mmd(x=behavior_actions, y=proposed_actions)
         if self.regularization:
             return self.dual * mmd
         else:
-            return self.dual * (
-                self.epsilon - mmd.detach()
-            )
+            return self.dual * (self.epsilon - mmd.detach()) + self.dual.detach() * mmd
 
     def mmd(self, x, y):
         """Compute MMD loss"""
@@ -79,6 +77,7 @@ class MMDLoss(nn.Module):
 class BEAR(DDPG):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.lambda_ = 0.4
         self.mmd_loss = MMDLoss(
             kernel_function=self.hyper_params.get("kernel", "rbf"),
             kernel_param=self.hyper_params.get("sigma", 20.),
@@ -86,10 +85,7 @@ class BEAR(DDPG):
             regularization=self.hyper_params.get("regularization", False)
         )
         self.mmd_samples = self.hyper_params.get("mmd_samples", 5)
-        self.optimizer_dual = torch.optim.Adam(
-            params=[self.mmd_loss.dual_raw],
-            # lr=self.hyper_params.get('lr_actor', 1e-3)
-        )
+        self.optimizer_dual = torch.optim.Adam(params=[self.mmd_loss.dual_raw], lr=0.1)
 
     def train_actor(self, obs):
         """Train actor."""
@@ -98,18 +94,15 @@ class BEAR(DDPG):
 
         policy_actions = self.policy(state)
 
-        actor_loss = -self.critic(state, policy_actions)
-
+        actor_loss = self.critic(state, policy_actions)
         if self.critic.num_heads > 1:
             actor_loss = actor_loss.min(-1)[0]
-        actor_loss = actor_loss.mean()
-
-        # Add regularization loss.
+        actor_loss = -actor_loss.mean()
 
         actor_loss += self.mmd_loss(
             behavior_actions=action.unsqueeze(1),
             proposed_actions=policy_actions.unsqueeze(1).repeat_interleave(
-                self.mmd_samples, 1
+                    self.mmd_samples, 1
             )
         )
 
