@@ -190,7 +190,8 @@ if args.eval:
         folder=name_logger_folder, name=name_logger)
 
     agent = ORAAC(env, policy, critic, target_policy, target_critic,
-                  dataset=None, eval=True, logger=logger, vae=vae)
+                  hyper_params={}, dataset=None, eval=True, logger=logger,
+                  vae=vae)
 
     print('\nEvaluating model....')
     max_episode_steps = 200 if 'Cheetah' in env.name else 500
