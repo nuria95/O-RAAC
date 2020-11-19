@@ -139,21 +139,23 @@ def get_names(p, args, date, record_tensorboard, save_model):
 
 
 def get_names_eval(p):
-    assert p.agent.RISK_DISTORTION is not None, 'Risk distortion not provided'
-    inf_distortion = f'{p.agent.RISK_DISTORTION}'
-    if p.agent.RISK_DISTORTION == 'cvar':
-        assert p.agent.alpha_cvar is not None,\
-            'alpha_cvar parameter is not provided'
-        inf_distortion = inf_distortion+f'{p.agent.alpha_cvar}'
+    if p.agent.name == 'O_RAAC':
+        assert p.agent.RISK_DISTORTION is not None, 'Risk distortion not provided'
+        inf_distortion = f'{p.agent.RISK_DISTORTION}'
+        if p.agent.RISK_DISTORTION == 'cvar':
+            assert p.agent.alpha_cvar is not None,\
+                'alpha_cvar parameter is not provided'
+            inf_distortion = inf_distortion+f'{p.agent.alpha_cvar}'
+    else:
+        inf_distortion = ''
 
     if p.agent.name == 'O_RAAC':
-        name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                              f'{p.env.name}/eval/statistics/'
-                              f'lamda{p.agent.lamda}/{inf_distortion}')
+        name_logger_folder = (f'data_ICLR_tables/'
+                              f'{p.agent.name}_{inf_distortion}/'
+                              f'{p.env.name}/eval')
     else:
-        name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                              f'{p.env.name}/eval/statistics/'
-                              f'{inf_distortion}')
+        name_logger_folder = (f'data_ICLR_tables/{p.agent.name}/'
+                              f'{p.env.name}/eval')
 
     return name_logger_folder
 
