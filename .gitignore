@@ -118,13 +118,8 @@ my_repo/
 #VScode
 .vscode/
 
-#runs_folder
-runs_CartPole-v0/
-runs_Pendulum-v0/
-runs_*
 #models folder
 models/
-models_test/
 
 #videos folder
 all_videos/
@@ -135,21 +130,8 @@ graphs/
 
 #jsons
 json_experiments/
+json_params/
 
-
-#rllib files
-experiments/tabular_environments/learning.py
-experiments/tabular_environments/planning.py
-
-
-#Data_results
-Data_results/
-test_car_results/
-#Loggers
-loggers/
-
-#mid_term
-mid_term_presentation/
 
 #statistics
 statistics/
@@ -160,25 +142,14 @@ recording/
 #tables
 tables/
 
-json_params/AC/
-json_params/IQN/
-json_params/DDPG/
-json_params/Params_CartPole_Reinforce.json
-json_params/Params_Cliffwalker_Reinforce.json
-json_params/Params_CliffwalkerCVAR.json
-json_params/Params_OptionPricing.json
-json_params/CVAR_DDPG/
-json_params/OFFPOLICY/
-json_params/WCPG_OFFLINE/
+#parsing_results
+data_ICLR_tables/
+
+#evaluation tables
+experiments/eval*
+
+runner/
 
 
-#final_presentation
-final_presentation/
-
-#miscellaneous files
-miscellaneous/
-
-final_statistics/
-eval_statistics_terminate/
 
 
