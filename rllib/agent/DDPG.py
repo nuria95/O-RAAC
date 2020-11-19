@@ -8,8 +8,9 @@ import copy
 
 
 class DDPG(AbstractAgent):
-    def __init__(self, env, dataset, early_stopper_rew,
-                 early_stopper_var, logger, name_save, hyper_params,
+    def __init__(self, env, hyper_params, dataset=None, early_stopper_rew=None,
+                 early_stopper_var=None, logger=None, name_save=None,
+
                  eval=False, bool_save_model=True):
         super().__init__()
         self.env = env
@@ -73,10 +74,7 @@ class DDPG(AbstractAgent):
         if not self.bool_save_model:
             pass
         else:
-            model_dict = {
-                'critic': self.critic.state_dict(),
-                'actor': self.policy.state_dict(),
-                'vae': self.vae.state_dict()}
+            model_dict = self.model_dict
             self.logger.export_to_json()
             directory_dict = f'{self.name_save}_mean{self.mean_:.2f}_'\
                 f'cvar{self.cvar_:.2f}epoch'\
@@ -100,6 +98,8 @@ class DDPG(AbstractAgent):
                 done = False
 
                 while not done:
+                    if render:
+                        self.env.render()
                     action = self.act(state)
                     next_state, reward, done, info = self.env.step(action)
                     observation = Observation(state=state,
@@ -112,6 +112,8 @@ class DDPG(AbstractAgent):
                     if max_episode_steps <= self.episodes_eval_steps[-1]:
                         break
                 super().end_episode_offline()
+        if self.logger:
+            self.log_data()
 
     def train(self):
         super().train_step()  # count number of training steps

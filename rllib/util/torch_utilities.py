@@ -139,6 +139,9 @@ class EarlyStopping:
         with open(self.loss_evol_file, 'a') as f:
             f.write(text_print)
 
+        model_dict['env_properties'] = [i for i in self.env_properties.items()]
+        model_dict['agent_properties'] = [
+            i for i in self.agent_properties.items()]
         directory_dict = '{}_{}.tar'.format(self.name_save, self.evol_type)
 
         torch.save(model_dict, directory_dict)
