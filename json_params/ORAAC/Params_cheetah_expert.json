@@ -27,7 +27,7 @@
         "TAU_EMBEDDING_DIM": 16,
         "RISK_DISTORTION": "wang",
         "alpha_cvar": 0.1,
-        "lamda": 0.75
+        "lamda": 0.25
     },
     "env": {
         "name": "halfcheetah-expert-v0",

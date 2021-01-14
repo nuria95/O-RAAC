@@ -228,7 +228,7 @@ class ORAAC(AbstractAgent):
 
         return action.data.numpy()
 
-    def evaluate_model(self, max_episode_steps, times_eval=1, render=False):
+    def evaluate_model(self, max_episode_steps, times_eval=1):
         self.times_eval = times_eval
         with torch.no_grad():
             for i in range(times_eval):
@@ -254,7 +254,6 @@ class ORAAC(AbstractAgent):
                 super().end_episode_offline()
 
         if self.logger:
-            # report_log(filename=self.report_file, text=row+text+row)
             self.log_data()
         if self.tb is not None:
             self.tb_data()
@@ -274,7 +273,7 @@ class ORAAC(AbstractAgent):
         if self.eval:
             self.logger.add(**{"angles": self.logs['episodes_angles']})
             self.logger.add(**{"velocities": self.logs['episodes_vels']})
-
+        # Save performance results during evaluation
         if not self.num_train_steps % 1000 or self.eval:
             self.logger.export_to_json()
 

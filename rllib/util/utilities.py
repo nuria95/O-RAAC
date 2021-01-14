@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch.distributions import uniform
 from torch.distributions.normal import Normal
+import warnings
 
 __all__ = ['get_dict_hyperparams', 'compute_cvar', 'Wang_distortion']
 
@@ -15,6 +16,7 @@ def get_dict_hyperparams(p):
         'target_update_tau': p.agent.TARGET_UPDATE_TAU,
         'policy_update_freq': p.agent.POLICY_UPDATE_FREQUENCY,
         "lamda": p.agent.lamda,
+        "phi": p.agent.phi,
         'n_quantiles_policy': p.agent.N_QUANTILES_POLICY,
         'n_quantiles_critic': p.agent.N_QUANTILES_CRITIC,
         'risk_distortion': p.agent.RISK_DISTORTION,
@@ -49,9 +51,13 @@ def compute_cvar(data, alpha):
     else:
         cvar = sorted_data[:, int(alpha * N)::].mean(1)
     if all(torch.isnan(cvar)):
-        raise ValueError(f'Not enough samples to compute {alpha} '
-                         f'CVaR from {data}')
-        # return sorted_data[:, 0].numpy()
+        # raise ValueError(f'Not enough samples to compute {alpha} '
+        #                  f'CVaR from {data}')
+        warnings.warn(f'\nNot enough samples (N) to compute {alpha}-'
+                      f'CVaR from tensor of episode cumrewards: {data}.'
+                      '\nIncrease number of evaluation episodes N by passing'
+                      'the argument --numexp N')
+        return data[0].numpy()
 
     else:
         return cvar.numpy()

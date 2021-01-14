@@ -1,6 +1,6 @@
 import json
 import os
-# import warnings
+import warnings
 from copy import deepcopy
 from datetime import datetime as dt
 
@@ -16,13 +16,14 @@ from rllib.util.neural_networks import (VAE, DeterministicNN_IQN, ORAAC_Actor,
 from rllib.util.torch_utilities import EarlyStopping
 from torch.utils.tensorboard import SummaryWriter
 from utils.utilities import (dotdict, find_file, get_names, get_names_eval,
-                             parse_args, update_old_json_varnames)
+                             parse_args)
 
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
-record_tensorboard = True  # if 'cluster' in os.getcwd() else False
-save_model = True  # if 'cluster' in os.getcwd() else False
+record_tensorboard = True
+save_model = True
 render_eval = False
+save_eval_results = False
 
 args = parse_args()
 if args.model_path:
@@ -67,9 +68,7 @@ if not args.eval:
 
 
 if args.eval:
-    folder_model = 'data_ICLR/*/'\
-        '*/train/models/lamda*/'\
-        'cvar*'
+    folder_model = 'model-zoo'
     model_dict_name = find_file(
         args.model_path, path_name=folder_model, extension='.tar')
     input(f"Loading: \n{model_dict_name}? \nEnter to continue")
@@ -85,9 +84,10 @@ if args.eval:
     for item in model_net['agent_properties']:
         dict_agent[item[0]] = item[1]
     p.agent = dotdict(dict_agent)
-    update_old_json_varnames(p)
 
-    seed = args.SEED if args.SEED is not None else 100
+    # update_old_json_varnames(p)
+
+    seed = args.SEED if args.SEED is not None else 20
     env, _ = get_env(p, seed, eval=True, eval_terminate_when_unhealthy=True)
 
     name_file = model_dict_name[:-4].split('/')[-1]
@@ -116,24 +116,19 @@ except IndexError:
     num_states = env.observation_space.n + 1
 
 print('*****Environment properties*****\n')
-print('Name', env.unwrapped.spec.id)
-print('Action dimension', dim_action)
-print('Num of possible actions', num_actions)
-print('Action space', env.action_space.shape)
-print('lims action space', env.action_space.low, env.action_space.high)
-print('State dimension', dim_state)
-print('Num of possible states', num_states)
-print('Max episode steps in theory', env.spec.max_episode_steps)
-print('Max reward threshold', env.spec.reward_threshold)
+print('Name', env.name)
+print('Action space dimension', dim_action)
+print('Range action space', env.action_space.low, env.action_space.high)
+print('State space dimension', dim_state)
 
 if p.agent.name == 'RAAC':
     policy = RAAC_Actor(dim_state=dim_state, dim_action=dim_action,
                         max_action=env.action_space.high[0],
-                        phi=1-p.agent.lamda, tau=p.agent.TARGET_UPDATE_TAU)
+                        lamda=p.agent.lamda, tau=p.agent.TARGET_UPDATE_TAU)
 else:
     policy = ORAAC_Actor(dim_state=dim_state, dim_action=dim_action,
                          max_action=env.action_space.high[0],
-                         phi=1-p.agent.lamda, tau=p.agent.TARGET_UPDATE_TAU)
+                         lamda=p.agent.lamda, tau=p.agent.TARGET_UPDATE_TAU)
 
 
 vae = VAE(dim_state=dim_state, dim_action=dim_action,
@@ -187,18 +182,18 @@ if args.eval:
     name_logger = f'{name_file}_{date}'
 
     logger = Logger(
-        folder=name_logger_folder, name=name_logger)
+        folder=name_logger_folder,
+        name=name_logger) if save_eval_results else None
 
     agent = ORAAC(env, policy, critic, target_policy, target_critic,
                   hyper_params={}, dataset=None, eval=True, logger=logger,
-                  vae=vae)
+                  vae=vae, render=render_eval)
 
     print('\nEvaluating model....')
     max_episode_steps = 200 if 'Cheetah' in env.name else 500
 
     agent.evaluate_model(max_episode_steps=max_episode_steps,
-                         render=render_eval,
                          times_eval=args.numexp)
-
-    print(f'Logged data saved in {logger.folder}/{logger.name}.json')
+    if logger and save_eval_results:
+        print(f'Logged data saved in {logger.folder}/{logger.name}.json')
     env.close()

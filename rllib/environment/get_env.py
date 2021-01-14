@@ -38,7 +38,7 @@ def get_env(p, SEED=None, eval=False, reset_noise_scale=None,
     # Use v3 version of environments for extra information to be available
     kwargs = {'terminate_when_unhealthy': terminate_when_unhealthy} if \
         'cheetah' not in dataset_name else {}
-    if reset_noise_scale:
+    if reset_noise_scale is not None:
         kwargs['reset_noise_scale'] = reset_noise_scale
     env = gym.make(get_gym_name(dataset_name),
                    **kwargs

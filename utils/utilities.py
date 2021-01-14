@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument('--eval', default=False, action='store_true')
     parser.add_argument('--retrain', default=False, action='store_true')
     parser.add_argument('--model_path', action="store", type=str)
-    parser.add_argument('--numexp', action="store", type=int, default=1)
+    parser.add_argument('--numexp', action="store", type=int, default=100)
     parser.add_argument('--render', default=False, action='store_true')
     parser.add_argument('--record', default=False, action='store_true')
     parser.add_argument('--ablated', default=False, action='store_true')
@@ -94,7 +94,7 @@ def get_names(p, args, date, record_tensorboard, save_model):
         if p.agent.RISK_DISTORTION == 'cvar':
             assert p.agent.alpha_cvar is not None,\
                 'alpha_cvar parameter is not provided'
-            inf_distortion = inf_distortion+'{p.agent.alpha_cvar}'
+            inf_distortion = inf_distortion+f'{p.agent.alpha_cvar}'
     else:
         inf_distortion = ''
     inf_seed = f'_seed{p.agent.SEED}'
@@ -128,11 +128,11 @@ def get_names(p, args, date, record_tensorboard, save_model):
         name_save = None
     if p.agent.name == 'O_RAAC':
         name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                              f'{p.env.name}/train/statistics/'
+                              f'{p.env.name}/train/train_results/'
                               f'lamda{p.agent.lamda}/{inf_distortion}')
     else:
         name_logger_folder = (f'data_ICLR/{p.agent.name}/'
-                              f'{p.env.name}/train/statistics/'
+                              f'{p.env.name}/train/train_results/'
                               f'/{inf_distortion}')
 
     return name_file, name_tb, name_save, name_logger_folder
@@ -140,6 +140,7 @@ def get_names(p, args, date, record_tensorboard, save_model):
 
 def get_names_eval(p):
     if p.agent.name == 'O_RAAC':
+        print(p)
         assert p.agent.RISK_DISTORTION is not None, 'Risk distortion not provided'
         inf_distortion = f'{p.agent.RISK_DISTORTION}'
         if p.agent.RISK_DISTORTION == 'cvar':
@@ -174,8 +175,20 @@ def update_old_json_varnames(p):
     if p.env.prob_v_penal is not None:
         p.env.prob_vel_penal = p.env.prob_v_penal
         p.env.cost_vel = p.env.cost_high_vel
+        del p.env['cost_high_vel']
+        del p.env['prob_v_penal']
+
     if p.env.prob_unhealthy_penal is not None:
         p.env.prob_pose_penal = p.env.prob_unhealthy_penal
         p.env.cost_pose = p.env.cost_unhealthy
+        del p.env['prob_unhealthy_penal']
+        del p.env['cost_unhealthy']
+
+    if p.agent.RISK_DISTORTION is None:
+        if p.agent.cvar is not None:
+            p.agent.RISK_DISTORTION = 'cvar'
+            p.agent.alpha_cvar = p.agent.cvar
+            del p.agent['cvar']     
     if p.agent.name == 'O_DDACVAR':
         p.agent.name = 'O_RAAC'
+   

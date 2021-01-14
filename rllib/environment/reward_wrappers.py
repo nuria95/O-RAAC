@@ -94,12 +94,11 @@ class RewardUnhealthyPose(gym.RewardWrapper):
         self.penal_distr = Bernoulli(kwargs['prob_pose_penal'])
         self.penal = kwargs['cost_pose']
         if 'Walker' in self.env.unwrapped.spec.id:
-            # self.robust_z_range = (1.0, 1.8)
-            self.robust_angle_range = (-1, 0.5)
+            self.robust_angle_range = (-0.5, 0.5)
             self.healthy_angle_range = (-1, 1)  # default env
 
         elif 'Hopper' in self.env.unwrapped.spec.id:
-            self.robust_angle_range = (-0.2, 0.1)
+            self.robust_angle_range = (-0.15, 0.1)
             self.healthy_angle_range = (-0.2, 0.2)  # default env
 
         else:
@@ -109,7 +108,6 @@ class RewardUnhealthyPose(gym.RewardWrapper):
     @property
     def is_robust_healthy(self):
         z, angle = self.env.sim.data.qpos[1:3]
-        # min_z, max_z = self.robust_z_range
         min_angle, max_angle = self.robust_angle_range
         robust_angle = min_angle < angle < max_angle
         is_robust_healthy = robust_angle  # and healthy_z
@@ -119,7 +117,6 @@ class RewardUnhealthyPose(gym.RewardWrapper):
     def is_healthy(self):
         z, angle = self.env.sim.data.qpos[1:3]
         h_min_angle, h_max_angle = self.healthy_angle_range
-        # healthy_z = 0.8 < z < 2.0
         healthy_angle = h_min_angle < angle < h_max_angle
         self.is_healthy = healthy_angle
 

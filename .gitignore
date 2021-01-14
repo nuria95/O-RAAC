@@ -130,11 +130,12 @@ graphs/
 
 #jsons
 json_experiments/
-json_params/
+
 
 
 #statistics
 statistics/
+train_results/
 
 #recordings 
 recording/

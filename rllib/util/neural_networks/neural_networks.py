@@ -93,22 +93,22 @@ class ORAAC_Actor(nn.Module):
         dimension of state input to neural network.
     dim_action: int
         dimension of action input to neural network.
-    max_action: Maxium value of action to scale to at the end
-    phi: float [0,1]
+    max_action: Maximum value of action to scale to at the end
+    lamda: float [0,1]
         percentage of perturbation added to the risk-neutral action
     tau: float [0,1], optional, default 1.0
         Regulates soft update of target parameters.
         % of new parameters used to update target parameters
     """
 
-    def __init__(self, dim_state, dim_action, max_action, phi=0.05, tau=1.0):
+    def __init__(self, dim_state, dim_action, max_action, lamda=0.05, tau=1.0):
         super(ORAAC_Actor, self).__init__()
         self.l1 = nn.Linear(dim_state + dim_action, 400)
         self.l2 = nn.Linear(400, 300)
         self.l3 = nn.Linear(300, dim_action)
 
         self.max_action = max_action
-        self.phi = nn.Parameter(torch.tensor(phi), requires_grad=False)
+        self.phi = nn.Parameter(torch.tensor(lamda), requires_grad=False)
         self.tau = tau
 
     def forward(self, state, action):
@@ -153,14 +153,14 @@ class RAAC_Actor(nn.Module):
     dim_action: int
         dimension of action input to neural network.
     max_action: Maxium value of action to scale to at the end
-    phi: float [0,1]
+    lamda: float [0,1]
         percentage of perturbation added to the risk-neutral action
     tau: float [0,1], optional, default 1.0
         Regulates soft update of target parameters.
         % of new parameters used to update target parameters
     """
 
-    def __init__(self, dim_state, dim_action, max_action, phi=0.05, tau=1.0):
+    def __init__(self, dim_state, dim_action, max_action, lamda=0.05, tau=1.0):
         super(RAAC_Actor, self).__init__()
         self.l1 = nn.Linear(dim_state, 400)
         self.l2 = nn.Linear(400, 300)
@@ -398,20 +398,20 @@ class Actor(nn.Module):
 
 
 class VAEActor(nn.Module):
-    def __init__(self, state_dim, action_dim, max_action, phi=0.05, tau=0.1):
+    def __init__(self, state_dim, action_dim, max_action, lamda=0.05, tau=0.1):
         super(VAEActor, self).__init__()
         self.l1 = nn.Linear(state_dim + action_dim, 400)
         self.l2 = nn.Linear(400, 300)
         self.l3 = nn.Linear(300, action_dim)
 
         self.max_action = max_action
-        self.phi = phi
+        self.lamda = lamda
         self.tau = tau
 
     def forward(self, state, action):
         a = F.relu(self.l1(torch.cat([state, action], 1)))
         a = F.relu(self.l2(a))
-        a = self.phi * self.max_action * torch.tanh(self.l3(a))
+        a = self.lamda * self.max_action * torch.tanh(self.l3(a))
         return (a + action).clamp(-self.max_action, self.max_action)
 
     @property
