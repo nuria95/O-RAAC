@@ -180,12 +180,25 @@ class HDF5_Creator():
 
 
 if __name__ == "__main__":
-    name_env = ''  # 'halfcheetah-expert-v0'
-    dict_env = {}  # {'prob_vel_penal': 0.05,
-    # 'cost_vel': -60,
-    # 'max_vel': 10}
-    fname = ''
-    # f'{path_to_datasets}/halfcheetah_expert_prob0.05_penal-60_maxvel10.hdf5'
+    # To create the HDF5 file directly:
+    dict_env = {
+        "name": "walker2d-expert-v0",
+        "prob_pose_penal": 0.15,
+        "cost_pose": -30,
+    }
+    name_env = dict_env['name']
+    env_d4rl = gym.make(name_env)
+    dataset_name = env_d4rl.dataset_filepath[:-5]
+    if dict_env.get('prob_vel_penal'):
+        fname = f'{dataset_name}_'\
+                f'prob{dict_env["prob_vel_penal"]}_'\
+            f'penal{dict_env["cost_vel"]}_'\
+            f'maxvel{dict_env["max_vel"]}.hdf5'
+    else:
+        fname = f'{dataset_name}_'\
+                f'prob{dict_env["prob_pose_penal"]}_'\
+            f'penal{dict_env["cost_pose"]}_'\
+            f'pose.hdf5'
 
     creator = HDF5_Creator(name_env, dict_env, fname)
     creator.create_hdf5_file()

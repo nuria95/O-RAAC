@@ -11,7 +11,7 @@ class DDPG(AbstractAgent):
     def __init__(self, env, hyper_params, dataset=None, early_stopper_rew=None,
                  early_stopper_var=None, logger=None, name_save=None,
 
-                 eval=False, bool_save_model=True):
+                 eval=False, bool_save_model=True, only_vae=False):
         super().__init__()
         self.env = env
         self.dataset = dataset
@@ -22,6 +22,7 @@ class DDPG(AbstractAgent):
         self.early_stopper_rew = early_stopper_rew
         self.bool_save_model = True
         self.logger = logger
+        self.only_vae = only_vae
 
         dim_action = env.action_space.shape[0]
         dim_state = env.observation_space.shape[0]
@@ -112,6 +113,8 @@ class DDPG(AbstractAgent):
                     if max_episode_steps <= self.episodes_eval_steps[-1]:
                         break
                 super().end_episode_offline()
+                print(f'Fraction Risky times:'
+                    f'{self.fraction_risky_times(self.times_eval):.2f}\n\n')
         if self.logger:
             self.log_data()
 

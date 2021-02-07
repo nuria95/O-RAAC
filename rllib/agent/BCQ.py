@@ -34,11 +34,21 @@ class BCQ(DDPG):
         self.vae_optimizer = torch.optim.Adam(self.vae.parameters())
 
     def act(self, state):  # only for evaluation
+        if self.only_vae:
+            return self.act_vae(state)
+        else:
+            with torch.no_grad():
+                state = torch.tensor(state.reshape(
+                    1, -1)).float().repeat(100, 1)
+                action = self.policy(state, self.vae.decode(state))
+                ind = self.critic(state, action)[..., 0].argmax(0)
+            return action[ind].cpu().data.numpy()
+
+    def act_vae(self, state):  # only for evaluation
         with torch.no_grad():
-            state = torch.tensor(state.reshape(1, -1)).float().repeat(100, 1)
-            action = self.policy(state, self.vae.decode(state))
-            ind = self.critic(state, action)[..., 0].argmax(0)
-        return action[ind].cpu().data.numpy()
+            state = torch.tensor(state.reshape(1, -1)).float()
+            vae_action = self.vae.decode(state)
+        return vae_action.numpy()
 
     def train(self):
         super().train_step()  # count number of training steps
@@ -119,4 +129,4 @@ class BCQ(DDPG):
             'critic': self.critic.state_dict(),
             'actor': self.policy.state_dict(),
             'vae': self.vae.state_dict()
-            }
+        }

@@ -220,7 +220,8 @@ class ORAAC(AbstractAgent):
         with torch.no_grad():
             state = torch.FloatTensor(state.reshape(1, -1))
             if self.with_IL:  # ORAAC
-                vae_action = self.vae.decode(state)
+                # latent vector to zeros if in evaluation mode
+                vae_action = self.vae.decode(state, eval=self.eval)
                 action = self.policy(
                     state, vae_action)
             else:  # RAAC
@@ -252,6 +253,10 @@ class ORAAC(AbstractAgent):
                     if max_episode_steps <= self.episodes_eval_steps[-1]:
                         break
                 super().end_episode_offline()
+                print(f'Num steps {self.episodes_eval_steps[-1]}/'
+                      f'{max_episode_steps}')
+                print(f'Fraction Risky times:'
+                      f'{self.fraction_risky_times(self.times_eval):.2f}\n\n')
 
         if self.logger:
             self.log_data()

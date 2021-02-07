@@ -98,7 +98,7 @@ class RewardUnhealthyPose(gym.RewardWrapper):
             self.healthy_angle_range = (-1, 1)  # default env
 
         elif 'Hopper' in self.env.unwrapped.spec.id:
-            self.robust_angle_range = (-0.15, 0.1)
+            self.robust_angle_range = (-0.1, 0.1)
             self.healthy_angle_range = (-0.2, 0.2)  # default env
 
         else:

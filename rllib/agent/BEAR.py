@@ -63,7 +63,8 @@ class MMDLoss(nn.Module):
         if self.regularization:
             return self.dual * mmd
         else:
-            return self.dual * (self.epsilon - mmd.detach()) + self.dual.detach() * mmd
+            return self.dual * (self.epsilon - mmd.detach()) + \
+                self.dual.detach() * mmd
 
     def mmd(self, x, y):
         """Compute MMD loss"""
@@ -85,7 +86,8 @@ class BEAR(DDPG):
             regularization=self.hyper_params.get("regularization", False)
         )
         self.mmd_samples = self.hyper_params.get("mmd_samples", 5)
-        self.optimizer_dual = torch.optim.Adam(params=[self.mmd_loss.dual_raw], lr=0.1)
+        self.optimizer_dual = torch.optim.Adam(
+            params=[self.mmd_loss.dual_raw], lr=0.1)
 
     def train_actor(self, obs):
         """Train actor."""
@@ -102,7 +104,7 @@ class BEAR(DDPG):
         actor_loss += self.mmd_loss(
             behavior_actions=action.unsqueeze(1),
             proposed_actions=policy_actions.unsqueeze(1).repeat_interleave(
-                    self.mmd_samples, 1
+                self.mmd_samples, 1
             )
         )
 
@@ -118,4 +120,4 @@ class BEAR(DDPG):
         return {
             'critic': self.critic.state_dict(),
             'actor': self.policy.state_dict()
-            }
+        }

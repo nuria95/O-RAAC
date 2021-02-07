@@ -5,14 +5,14 @@ import d4rl
 import gym
 import numpy as np
 import torch
-from rllib.agent import BCQ, BEAR, DDPG
+from rllib.agent import BCQ, BEAR
 from rllib.environment import get_env
 from rllib.util.logger import Logger
 from rllib.util.rollout import oraac_rollout
 from rllib.util.utilities import get_dict_hyperparams
 from rllib.util.torch_utilities import EarlyStopping
 from torch.utils.tensorboard import SummaryWriter
-from utils.utilities import (dotdict, find_file, get_names, get_names_eval,
+from utils.utilities import (dotdict,  get_names,
                              parse_args)
 
 record_tensorboard = True  # if 'cluster' in os.getcwd() else False

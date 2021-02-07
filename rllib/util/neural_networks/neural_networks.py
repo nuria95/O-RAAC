@@ -77,6 +77,8 @@ class VAE(nn.Module):
         # When sampling from the VAE, latent vector is clipped to [-0.5, 0.5]
         if z is None:  # sample batch_size x latent_dim
             z = torch.randn((state.shape[0], self.latent_dim)).clamp(-0.5, 0.5)
+        if eval is True:
+            z = torch.zeros((state.shape[0], self.latent_dim))
 
         a = F.relu(self.d1(torch.cat([state, z], 1)))
         a = F.relu(self.d2(a))
