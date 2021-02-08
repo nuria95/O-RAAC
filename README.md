@@ -16,7 +16,7 @@ pip install -e .
 
 In order to run O-RAAC you need to install D4RL (follow the instructions in https://github.com/rail-berkeley/d4rl) and  you need MuJoCo as a dependency. You may need to obtain a license and follow the setup instructions for mujoco_py. This mostly involves copying the key to your MuJoCo installation folder.
 
-# Running:
+## Training:
 To train the ORAAC model you need to:
 Activate the environment:
 `source venv/bin/activate`
@@ -31,6 +31,7 @@ or provide it as an argument accordingly.
 --RISK_DISTORTION 'risk_distortion'
 where 'risk_distortion' can be 'cvar' or 'cpw' or 'wang'.
  
+# Evaluation:
 The best trained models (according to 0.1 CVaR and Mean metrics) for each environment are saved in the `model-zoo` folder.
 To evaluate the policies using such models you can do:
 `python3 experiments/oraac.py --model_path 'name of environment'`
