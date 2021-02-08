@@ -4,9 +4,9 @@ import d4rl  # Import required to register environments
 import gym
 import numpy as np
 import torch
-from rllib.dataset.utilities import DatasetWriter
-from rllib.environment.reward_wrappers import (RewardHighVelocity,
-                                               RewardUnhealthyPose)
+from oraaclib.dataset.utilities import DatasetWriter
+from oraaclib.environment.reward_wrappers import (RewardHighVelocity,
+                                                  RewardUnhealthyPose)
 from torch.distributions import Bernoulli
 
 path_to_datasets = os.environ.get('D4RL_DATASET_DIR',

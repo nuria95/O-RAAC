@@ -7,13 +7,14 @@ from datetime import datetime as dt
 import gym
 import numpy as np
 import torch
-from rllib.agent import ORAAC
-from rllib.environment import get_env
-from rllib.util import get_dict_hyperparams, oraac_rollout
-from rllib.util.logger import Logger
-from rllib.util.neural_networks import (VAE, DeterministicNN_IQN, ORAAC_Actor,
-                                        RAAC_Actor)
-from rllib.util.torch_utilities import EarlyStopping
+from oraaclib.agent import ORAAC
+from oraaclib.environment import get_env
+from oraaclib.util import get_dict_hyperparams, oraac_rollout
+from oraaclib.util.logger import Logger
+from oraaclib.util.neural_networks import (VAE, DeterministicNN_IQN,
+                                           ORAAC_Actor,
+                                           RAAC_Actor)
+from oraaclib.util.torch_utilities import EarlyStopping
 from torch.utils.tensorboard import SummaryWriter
 from utils.utilities import (dotdict, find_file, get_names, get_names_eval,
                              parse_args)

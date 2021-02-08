@@ -1,7 +1,7 @@
 """Python Script Template."""
 from .abstract_agent import AbstractAgent
-from rllib.util.neural_networks.neural_networks import Actor, Critic
-from rllib.dataset import Observation
+from oraaclib.util.neural_networks.neural_networks import Actor, Critic
+from oraaclib.dataset import Observation
 
 import torch
 import copy

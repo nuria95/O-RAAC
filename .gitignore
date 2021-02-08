@@ -26,7 +26,8 @@ sdist/
 var/
 baselines/
 wheels/
-rllib.egg-info/
+oraaclib.egg-info/
+oraaclibvenv/
 .installed.cfg
 *.egg
 *.sh

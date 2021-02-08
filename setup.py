@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="rllib",
+    name="oraaclib",
     version="0.0.1",
     author="xxxxxxx",
     author_email="narmengolurpi@gmail.com",

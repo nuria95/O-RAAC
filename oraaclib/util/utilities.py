@@ -1,4 +1,4 @@
-"""Utilities for the rllib library."""
+"""Utilities for the oraaclib library."""
 import numpy as np
 import torch
 from torch.distributions import uniform

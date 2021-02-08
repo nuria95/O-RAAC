@@ -3,9 +3,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from gym.wrappers import ClipAction
-from rllib.dataset import Observation
-from rllib.util.losses import quantile_huber_loss
-from rllib.util.utilities import Wang_distortion, CPW, Power
+from oraaclib.dataset import Observation
+from oraaclib.util.losses import quantile_huber_loss
+from oraaclib.util.utilities import Wang_distortion, CPW, Power
 from torch.distributions import uniform
 from torch.distributions.normal import Normal
 

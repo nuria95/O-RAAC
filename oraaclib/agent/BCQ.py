@@ -2,7 +2,7 @@
 from .DDPG import DDPG
 import torch
 import copy
-from rllib.util.neural_networks.neural_networks import VAE, VAEActor
+from oraaclib.util.neural_networks.neural_networks import VAE, VAEActor
 
 
 class BCQ(DDPG):

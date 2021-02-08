@@ -3,10 +3,10 @@ import os
 import d4rl
 import gym
 import h5py
-from rllib.dataset.experience_replay import D4RL_Dataset
-from rllib.environment.reward_wrappers import (RewardHighVelocity,
-                                               RewardUnhealthyPose)
-from rllib.util.create_hdf5 import HDF5_Creator
+from oraaclib.dataset.experience_replay import D4RL_Dataset
+from oraaclib.environment.reward_wrappers import (RewardHighVelocity,
+                                                  RewardUnhealthyPose)
+from oraaclib.util.create_hdf5 import HDF5_Creator
 from utils.utilities import get_keys
 
 path_to_datasets = os.environ.get('D4RL_DATASET_DIR',
