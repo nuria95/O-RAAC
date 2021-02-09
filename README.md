@@ -1,7 +1,7 @@
 # O-RAAC
 Offline Risk-Averse Actor-Critic (O-RAAC). A model-free RL algorithm for risk-averse RL in a fully offline setting.
 
-Code for work presented in: [Risk-Averse Offline Reinforcement Learning]("https://openreview.net/forum?id=TBIzh9b5eaz")
+Code for work presented in: [Risk-Averse Offline Reinforcement Learning](https://openreview.net/forum?id=TBIzh9b5eaz)
 
 ## Installation
 
